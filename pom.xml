@@ -6,7 +6,7 @@
 
     <groupId>de.steinente</groupId>
     <artifactId>Veganizer</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
 
     <properties>
         <maven.compiler.source>19</maven.compiler.source>

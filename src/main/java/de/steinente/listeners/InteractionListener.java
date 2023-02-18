@@ -85,13 +85,13 @@ public class InteractionListener extends ListenerAdapter {
                                     Objects.requireNonNull(event.getGuild()).addRoleToMember(targetUser, talkRole).queue();
                                     message.editMessageEmbeds(messageEmbed).setActionRow(buttonList.get(0),
                                             buttonList.get(1).withLabel("Remove Talk"), buttonList.get(2), buttonList.get(3)).queue();
-                                    this.appendAddTalkLog(event, logIndex, interactUserName, fieldList, message, embedBuilder);
+                                    this.appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Added Talk", stageId);
                                     event.deferEdit().queue();
                                 } else {
                                     Objects.requireNonNull(event.getGuild()).removeRoleFromMember(targetUser, talkRole).queue();
                                     message.editMessageEmbeds(messageEmbed).setActionRow(buttonList.get(0),
                                             buttonList.get(1).withLabel("Add Talk"), buttonList.get(2), buttonList.get(3)).queue();
-                                    this.appendRemoveTalkLog(event, logIndex, interactUserName, fieldList, message, embedBuilder);
+                                    this.appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Removed Talk", stageId);
                                     event.deferEdit().queue();
                                 }
                             } else {
@@ -115,13 +115,13 @@ public class InteractionListener extends ListenerAdapter {
                                     Objects.requireNonNull(event.getGuild()).addRoleToMember(targetUser, voidRole).queue();
                                     message.editMessageEmbeds(messageEmbed).setActionRow(buttonList.get(0),
                                             buttonList.get(1), buttonList.get(2).withLabel("Remove Void"), buttonList.get(3)).queue();
-                                    this.appendAddVoidLog(event, logIndex, interactUserName, fieldList, message, embedBuilder);
+                                    this.appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Added Void", stageId);
                                     event.deferEdit().queue();
                                 } else {
                                     Objects.requireNonNull(event.getGuild()).removeRoleFromMember(targetUser, voidRole).queue();
                                     message.editMessageEmbeds(messageEmbed).setActionRow(buttonList.get(0),
                                             buttonList.get(1), buttonList.get(2).withLabel("Add Void"), buttonList.get(3)).queue();
-                                    this.appendRemoveVoidLog(event, logIndex, interactUserName, fieldList, message, embedBuilder);
+                                    this.appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Removed Void", stageId);
                                     event.deferEdit().queue();
                                 }
                             } else {
@@ -167,7 +167,7 @@ public class InteractionListener extends ListenerAdapter {
                         Objects.requireNonNull(event.getGuild()).unban(UserSnowflake.fromId(targetUserId)).queue();
                         message.editMessageEmbeds(messageEmbed).setActionRow(buttonList.get(0), buttonList.get(1), buttonList.get(2),
                                 buttonList.get(3).withLabel("Ban").withId("ban-button")).queue();
-                        this.appendUnbanLog(event, logIndex, interactUserName, fieldList, message, embedBuilder);
+                        this.appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Unbanned", stageId);
                         event.deferEdit().queue();
                     } else {
                         event.reply(Veganizer.NO_PERMISSIONS).setEphemeral(true).queue();
@@ -210,7 +210,7 @@ public class InteractionListener extends ListenerAdapter {
                             .queue();
                     message.editMessageEmbeds(messageEmbed).setActionRow(buttonList.get(0), buttonList.get(1), buttonList.get(2),
                             buttonList.get(3).withLabel("Unban").withId("unban-button")).queue();
-                    this.appendBanLog(event, logIndex, interactUserName, fieldList, message, embedBuilder);
+                    this.appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Banned", stageId);
                     event.deferEdit().queue();
                 }
             }
@@ -228,6 +228,7 @@ public class InteractionListener extends ListenerAdapter {
      * @param embedBuilder     embed builder
      * @param buttonList       list of buttons
      * @param logIndex         index of log field
+     * @param stageId          ID of stage
      */
     public void manageSummary(Event event, Message message, String interactUserName, List<MessageEmbed.Field> fieldList,
                               String summary, EmbedBuilder embedBuilder, List<Button> buttonList, int logIndex, long stageId) {
@@ -243,12 +244,13 @@ public class InteractionListener extends ListenerAdapter {
             message.editMessageEmbeds(embedBuilder.build()).setActionRow(Objects.requireNonNull(buttonList.get(0))
                     .withLabel("Edit Summary"), buttonList.get(1), buttonList.get(2), buttonList.get(3)).queue();
             if (isUserOnStage) voiceListener.getTrackingEmbedBuilder(stageId).addField(summaryField);
-            this.appendAddSummaryLog(event, logIndex, interactUserName, fieldList, message, embedBuilder);
+            this.appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Added Summary", stageId);
         } else {
             fieldList.set(summaryIndex, summaryField);
             message.editMessageEmbeds(embedBuilder.build()).queue();
-            if (isUserOnStage) voiceListener.getTrackingEmbedBuilder(stageId).getFields().set(summaryIndex, summaryField);
-            this.appendEditSummaryLog(event, logIndex, interactUserName, fieldList, message, embedBuilder);
+            if (isUserOnStage)
+                voiceListener.getTrackingEmbedBuilder(stageId).getFields().set(summaryIndex, summaryField);
+            this.appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Edited Summary", stageId);
         }
     }
 
@@ -259,6 +261,7 @@ public class InteractionListener extends ListenerAdapter {
      * @param messageEmbed embed of message
      * @param embedBuilder embed builder of message
      * @param message      message
+     * @param stageId      ID of stage
      */
     public void fixMessageIfBugged(Event event, MessageEmbed messageEmbed, EmbedBuilder embedBuilder, Message message, long stageId) {
         final VoiceListener voiceListener = (VoiceListener) event.getJDA().getRegisteredListeners().get(0);
@@ -280,14 +283,11 @@ public class InteractionListener extends ListenerAdapter {
      * @param message          target message
      * @param embedBuilder     target message embed builder
      * @param logBody          log body message
+     * @param stageId          ID of stage
      */
-    private void appendLog(Event event, int logIndex, String interactUserName,
-                           List<MessageEmbed.Field> fieldList, Message message, EmbedBuilder embedBuilder, String logBody) {
+    private void appendLog(Event event, int logIndex, String interactUserName, List<MessageEmbed.Field> fieldList,
+                           Message message, EmbedBuilder embedBuilder, String logBody, long stageId) {
         final VoiceListener voiceListener = (VoiceListener) event.getJDA().getRegisteredListeners().get(0);
-        final String stageName = Objects.requireNonNull(message.getEmbeds().get(0).getTitle()).split(" joined ")[1];
-        final List<StageChannel> stageChannelList = event.getJDA().getStageChannelsByName(stageName, false);
-        final long stageId = stageChannelList.get(stageChannelList.indexOf(stageChannelList.stream().filter(
-                o -> o.getGuild().getIdLong() == Veganizer.SERVER_ID).findFirst().orElse(null))).getIdLong();
         final MessageEmbed.Field oldLogField = logIndex == -1 ? null : fieldList.get(logIndex);
         final String log = logBody + " by " + interactUserName
                 + " [" + DateTimeFormatter.ofPattern("dd.MM.uuuu HH:mm").format(LocalDateTime.now()) + "]";
@@ -311,117 +311,5 @@ public class InteractionListener extends ListenerAdapter {
             if (isUserOnStage) voiceListener.getTrackingEmbedBuilder(stageId).getFields().set(logIndex, newLogField);
         }
         message.editMessageEmbeds(embedBuilder.build()).queue();
-    }
-
-    /**
-     * Appends an add summary log to message embed.
-     *
-     * @param logIndex         index of log field
-     * @param interactUserName interacting username
-     * @param fieldList        list of fields
-     * @param message          target message
-     * @param embedBuilder     target message embed builder
-     */
-    private void appendAddSummaryLog(Event event, int logIndex, String interactUserName,
-                                     List<MessageEmbed.Field> fieldList, Message message, EmbedBuilder embedBuilder) {
-        appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Added Summary");
-    }
-
-    /**
-     * Appends an edit summary log to message embed.
-     *
-     * @param logIndex         index of log field
-     * @param interactUserName interacting username
-     * @param fieldList        list of fields
-     * @param message          target message
-     * @param embedBuilder     target message embed builder
-     */
-    private void appendEditSummaryLog(Event event, int logIndex, String interactUserName,
-                                      List<MessageEmbed.Field> fieldList, Message message, EmbedBuilder embedBuilder) {
-        appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Edited Summary");
-    }
-
-    /**
-     * Appends an add talk log to message embed.
-     *
-     * @param logIndex         index of log field
-     * @param interactUserName interacting username
-     * @param fieldList        list of fields
-     * @param message          target message
-     * @param embedBuilder     target message embed builder
-     */
-    private void appendAddTalkLog(Event event, int logIndex, String interactUserName,
-                                  List<MessageEmbed.Field> fieldList, Message message, EmbedBuilder embedBuilder) {
-        appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Added Talk");
-    }
-
-    /**
-     * Appends a remove talk log to message embed.
-     *
-     * @param logIndex         index of log field
-     * @param interactUserName interacting username
-     * @param fieldList        list of fields
-     * @param message          target message
-     * @param embedBuilder     target message embed builder
-     */
-    private void appendRemoveTalkLog(Event event, int logIndex, String interactUserName,
-                                     List<MessageEmbed.Field> fieldList, Message message, EmbedBuilder embedBuilder) {
-        appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Removed Talk");
-    }
-
-    /**
-     * Appends an add void log to message embed.
-     *
-     * @param logIndex         index of log field
-     * @param interactUserName interacting username
-     * @param fieldList        list of fields
-     * @param message          target message
-     * @param embedBuilder     target message embed builder
-     */
-    private void appendAddVoidLog(Event event, int logIndex, String interactUserName,
-                                  List<MessageEmbed.Field> fieldList, Message message, EmbedBuilder embedBuilder) {
-        appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Added Void");
-    }
-
-    /**
-     * Appends a remove void log to message embed.
-     *
-     * @param logIndex         index of log field
-     * @param interactUserName interacting username
-     * @param fieldList        list of fields
-     * @param message          target message
-     * @param embedBuilder     target message embed builder
-     */
-    private void appendRemoveVoidLog(Event event, int logIndex, String interactUserName,
-                                     List<MessageEmbed.Field> fieldList, Message message, EmbedBuilder embedBuilder) {
-        appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Removed Void");
-    }
-
-    /**
-     * Appends a ban log to message embed.
-     *
-     * @param logIndex         index of log field
-     * @param interactUserName interacting username
-     * @param fieldList        list of fields
-     * @param message          target message
-     * @param embedBuilder     target message embed builder
-     */
-    private void appendBanLog(Event event, int logIndex, String interactUserName,
-                              List<MessageEmbed.Field> fieldList, Message message, EmbedBuilder embedBuilder) {
-        appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Banned");
-    }
-
-    /**
-     * Appends a unban log to message embed.
-     *
-     * @param logIndex         index of log field
-     * @param interactUserName interacting username
-     * @param fieldList        list of fields
-     * @param message          target message
-     * @param embedBuilder     target message embed builder
-     */
-    private void appendUnbanLog(Event event, int logIndex, String interactUserName,
-                                List<MessageEmbed.Field> fieldList, Message message, EmbedBuilder embedBuilder) {
-        appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Unbanned");
     }
 }

@@ -23,7 +23,7 @@ public class BanListener extends ListenerAdapter {
             }
 
             if (isOnStage) {
-                AtomicLong stageId = new AtomicLong();
+                final AtomicLong stageId = new AtomicLong();
                 final User finalUserOnStage = userOnStage;
                 event.getGuild().getVoiceStates().forEach(o -> {
                     if (o.getMember().getUser() == finalUserOnStage) {

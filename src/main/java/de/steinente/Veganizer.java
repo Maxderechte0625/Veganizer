@@ -6,7 +6,6 @@ import de.steinente.listeners.InteractionListener;
 import de.steinente.listeners.VoiceListener;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
 import java.awt.*;
