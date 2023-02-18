@@ -112,6 +112,11 @@ public class InteractionListener extends ListenerAdapter {
                             assert voidRole != null;
                             if (interactUser.hasPermission(Permission.MANAGE_ROLES) && interactUser.canInteract(voidRole)) {
                                 if (!targetMember.getRoles().contains(voidRole)) {
+                                    final Role newRole = event.getJDA().getRoleById(Veganizer.NEW_ROLE_ID);
+                                    assert newRole != null;
+                                    if (!targetMember.getRoles().contains(newRole)) {
+                                        Objects.requireNonNull(event.getGuild()).removeRoleFromMember(targetUser, newRole).queue();
+                                    }
                                     Objects.requireNonNull(event.getGuild()).addRoleToMember(targetUser, voidRole).queue();
                                     message.editMessageEmbeds(messageEmbed).setActionRow(buttonList.get(0),
                                             buttonList.get(1), buttonList.get(2).withLabel("Remove Void"), buttonList.get(3)).queue();
