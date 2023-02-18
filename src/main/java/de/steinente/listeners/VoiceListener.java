@@ -10,7 +10,6 @@ import net.dv8tion.jda.api.events.guild.GenericGuildEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceRequestToSpeakEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceSuppressEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
-import net.dv8tion.jda.api.events.session.SessionDisconnectEvent;
 import net.dv8tion.jda.api.exceptions.ErrorHandler;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
@@ -117,7 +116,6 @@ public class VoiceListener extends ListenerAdapter {
                     this.onUserLeaveStage(event, stageId);
                 }
             }
-
         }
     }
 
@@ -140,6 +138,7 @@ public class VoiceListener extends ListenerAdapter {
      * Tasks after leaving the stage.
      *
      * @param event GenericGuildEvent
+     * @param stageId ID of stage
      */
     public void onUserLeaveStage(GenericGuildEvent event, long stageId) {
         this.updateTrackingMessageTimer(event, stageId);
@@ -150,6 +149,8 @@ public class VoiceListener extends ListenerAdapter {
 
     /**
      * Clears all variables.
+     *
+     * @param stageId ID of stage
      */
     public void clearVariables(long stageId) {
         this.timerMap.get(stageId).shutdown();
@@ -158,6 +159,7 @@ public class VoiceListener extends ListenerAdapter {
     /**
      * Getter for TrackingEmbedBuilder.
      *
+     * @param stageId ID of stage
      * @return TrackingEmbedBuilder
      */
     public EmbedBuilder getTrackingEmbedBuilder(long stageId) {
@@ -167,6 +169,7 @@ public class VoiceListener extends ListenerAdapter {
     /**
      * Getter for ownMessageId.
      *
+     * @param stageId ID of stage
      * @return ownMessageId
      */
     public long getOwnMessageId(long stageId) {
@@ -179,12 +182,18 @@ public class VoiceListener extends ListenerAdapter {
     /**
      * Getter for activeMember.
      *
+     * @param stageId ID of stage
      * @return activeMember
      */
     public Member getActiveMember(long stageId) {
         return this.activeMemberMap.get(stageId);
     }
 
+    /**
+     * Getter for activeMemberMap.
+     *
+     * @return activeMemberMap
+     */
     public Map<Long, Member> getActiveMemberMap() {
         return this.activeMemberMap;
     }
@@ -193,6 +202,7 @@ public class VoiceListener extends ListenerAdapter {
      * Updates tracking message timer.
      *
      * @param event GenericGuildVoiceEvent
+     * @param stageId ID of stage
      */
     private void updateTrackingMessageTimer(GenericGuildEvent event, long stageId) {
         Objects.requireNonNull(event.getGuild().getTextChannelById(Veganizer.STAGE_TRACKING_CHANNEL_ID))
@@ -212,12 +222,14 @@ public class VoiceListener extends ListenerAdapter {
      * Updates tracking message.
      *
      * @param event GenericGuildVoiceEvent
+     * @param stageId ID of stage
      */
     private void updateTrackingMessageEmbed(GenericGuildEvent event, long stageId) {
         if (this.ownMessageIdMap.get(stageId) != null) {
             Objects.requireNonNull(event.getGuild().getTextChannelById(Veganizer.STAGE_TRACKING_CHANNEL_ID))
                     .editMessageEmbedsById(this.ownMessageIdMap.get(stageId), this.trackingEmbedBuilderMap.get(stageId).build())
-                    .queue(message -> {}, new ErrorHandler().handle(ErrorResponse.UNKNOWN_MESSAGE, e -> {}));
+                    .queue(null, new ErrorHandler().handle(ErrorResponse.UNKNOWN_MESSAGE, e -> {
+                    }));
         }
     }
 
