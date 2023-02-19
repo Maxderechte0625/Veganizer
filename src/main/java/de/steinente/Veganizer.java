@@ -18,7 +18,7 @@ public class Veganizer {
     public final static long TALK_ROLE_ID = Long.parseLong(System.getenv("talk_role_id"));
     public final static long NEW_ROLE_ID = Long.parseLong(System.getenv("new_role_id"));
     public final static String NO_PERMISSIONS = "You do not have enough permissions.";
-    public final static String NOT_ON_SERVER = "User is currently not on the server or has just (re)joined.";
+    public final static String NOT_ON_SERVER = "User is currently not on the server.";
     public final static Color GREEN = new Color(100, 221, 23);
     public final static Color YELLOW = new Color(255, 214, 0);
     public final static Color RED = new Color(221, 44, 0);
