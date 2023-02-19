@@ -206,7 +206,7 @@ public class VoiceListener extends ListenerAdapter {
      */
     private void updateTrackingMessageTimer(GenericGuildEvent event, long stageId) {
         Objects.requireNonNull(event.getGuild().getTextChannelById(Veganizer.STAGE_TRACKING_CHANNEL_ID))
-                .retrieveMessageById(this.ownMessageIdMap.get(stageId)).queue(m -> {
+                .retrieveMessageById(this.ownMessageIdMap.get(stageId)).queue(__ -> {
                     final int totalSecs = (int) (System.currentTimeMillis() - this.startTimeMap.get(stageId)) / 1000;
                     final int hours = totalSecs / 3600;
                     this.trackingEmbedBuilderMap.get(stageId).setDescription("Time on Stage: "
@@ -215,7 +215,7 @@ public class VoiceListener extends ListenerAdapter {
                         this.trackingEmbedBuilderMap.get(stageId).setColor(Veganizer.YELLOW);
                     }
                     this.updateTrackingMessageEmbed(event, stageId);
-                }, new ErrorHandler().handle(ErrorResponse.UNKNOWN_MESSAGE, e -> this.clearVariables(stageId)));
+                }, new ErrorHandler().handle(ErrorResponse.UNKNOWN_MESSAGE, __ -> this.clearVariables(stageId)));
     }
 
     /**
@@ -228,7 +228,7 @@ public class VoiceListener extends ListenerAdapter {
         if (this.ownMessageIdMap.get(stageId) != null) {
             Objects.requireNonNull(event.getGuild().getTextChannelById(Veganizer.STAGE_TRACKING_CHANNEL_ID))
                     .editMessageEmbedsById(this.ownMessageIdMap.get(stageId), this.trackingEmbedBuilderMap.get(stageId).build())
-                    .queue(null, new ErrorHandler().handle(ErrorResponse.UNKNOWN_MESSAGE, e -> {
+                    .queue(null, new ErrorHandler().handle(ErrorResponse.UNKNOWN_MESSAGE, __ -> {
                     }));
         }
     }

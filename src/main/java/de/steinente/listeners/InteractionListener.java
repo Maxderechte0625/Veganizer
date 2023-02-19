@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.Modal;
+import net.dv8tion.jda.api.requests.restaction.MessageEditAction;
 import net.dv8tion.jda.internal.interactions.component.TextInputImpl;
 import net.dv8tion.jda.internal.interactions.modal.ModalImpl;
 
@@ -82,17 +83,19 @@ public class InteractionListener extends ListenerAdapter {
                             assert talkRole != null;
                             if (interactUser.hasPermission(Permission.MANAGE_ROLES) && interactUser.canInteract(talkRole)) {
                                 if (!targetMember.getRoles().contains(talkRole)) {
-                                    Objects.requireNonNull(event.getGuild()).addRoleToMember(targetUser, talkRole).queue();
-                                    message.editMessageEmbeds(messageEmbed).setActionRow(buttonList.get(0),
-                                            buttonList.get(1).withLabel("Remove Talk"), buttonList.get(2), buttonList.get(3)).queue();
-                                    this.appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Added Talk", stageId);
-                                    event.deferEdit().queue();
+                                    Objects.requireNonNull(event.getGuild()).addRoleToMember(targetUser, talkRole)
+                                            .and(message.editMessageEmbeds(messageEmbed).setActionRow(buttonList.get(0),
+                                                    buttonList.get(1).withLabel("Remove Talk"), buttonList.get(2), buttonList.get(3)))
+                                            .and(this.appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Added Talk", stageId, false))
+                                            .and(event.deferEdit())
+                                            .queue();
                                 } else {
-                                    Objects.requireNonNull(event.getGuild()).removeRoleFromMember(targetUser, talkRole).queue();
-                                    message.editMessageEmbeds(messageEmbed).setActionRow(buttonList.get(0),
-                                            buttonList.get(1).withLabel("Add Talk"), buttonList.get(2), buttonList.get(3)).queue();
-                                    this.appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Removed Talk", stageId);
-                                    event.deferEdit().queue();
+                                    Objects.requireNonNull(event.getGuild()).removeRoleFromMember(targetUser, talkRole)
+                                            .and(message.editMessageEmbeds(messageEmbed).setActionRow(buttonList.get(0),
+                                                    buttonList.get(1).withLabel("Add Talk"), buttonList.get(2), buttonList.get(3)))
+                                            .and(this.appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Removed Talk", stageId, false))
+                                            .and(event.deferEdit())
+                                            .queue();
                                 }
                             } else {
                                 event.reply(Veganizer.NO_PERMISSIONS).setEphemeral(true).queue();
@@ -114,20 +117,22 @@ public class InteractionListener extends ListenerAdapter {
                                 if (!targetMember.getRoles().contains(voidRole)) {
                                     final Role newRole = event.getJDA().getRoleById(Veganizer.NEW_ROLE_ID);
                                     assert newRole != null;
-                                    if (!targetMember.getRoles().contains(newRole)) {
+                                    if (targetMember.getRoles().contains(newRole)) {
                                         Objects.requireNonNull(event.getGuild()).removeRoleFromMember(targetUser, newRole).queue();
                                     }
-                                    Objects.requireNonNull(event.getGuild()).addRoleToMember(targetUser, voidRole).queue();
-                                    message.editMessageEmbeds(messageEmbed).setActionRow(buttonList.get(0),
-                                            buttonList.get(1), buttonList.get(2).withLabel("Remove Void"), buttonList.get(3)).queue();
-                                    this.appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Added Void", stageId);
-                                    event.deferEdit().queue();
+                                    Objects.requireNonNull(event.getGuild()).addRoleToMember(targetUser, voidRole)
+                                            .and(message.editMessageEmbeds(messageEmbed).setActionRow(buttonList.get(0),
+                                                    buttonList.get(1), buttonList.get(2).withLabel("Remove Void"), buttonList.get(3)))
+                                            .and(this.appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Added Void", stageId, false))
+                                            .and(event.deferEdit())
+                                            .queue();
                                 } else {
-                                    Objects.requireNonNull(event.getGuild()).removeRoleFromMember(targetUser, voidRole).queue();
-                                    message.editMessageEmbeds(messageEmbed).setActionRow(buttonList.get(0),
-                                            buttonList.get(1), buttonList.get(2).withLabel("Add Void"), buttonList.get(3)).queue();
-                                    this.appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Removed Void", stageId);
-                                    event.deferEdit().queue();
+                                    Objects.requireNonNull(event.getGuild()).removeRoleFromMember(targetUser, voidRole)
+                                            .and(message.editMessageEmbeds(messageEmbed).setActionRow(buttonList.get(0),
+                                                    buttonList.get(1), buttonList.get(2).withLabel("Add Void"), buttonList.get(3)))
+                                            .and(this.appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Removed Void", stageId, false))
+                                            .and(event.deferEdit())
+                                            .queue();
                                 }
                             } else {
                                 event.reply(Veganizer.NO_PERMISSIONS).setEphemeral(true).queue();
@@ -169,11 +174,12 @@ public class InteractionListener extends ListenerAdapter {
                 }
                 case "unban-button" -> {
                     if (interactUser.hasPermission(Permission.BAN_MEMBERS)) {
-                        Objects.requireNonNull(event.getGuild()).unban(UserSnowflake.fromId(targetUserId)).queue();
-                        message.editMessageEmbeds(messageEmbed).setActionRow(buttonList.get(0), buttonList.get(1), buttonList.get(2),
-                                buttonList.get(3).withLabel("Ban").withId("ban-button")).queue();
-                        this.appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Unbanned", stageId);
-                        event.deferEdit().queue();
+                        Objects.requireNonNull(event.getGuild()).unban(UserSnowflake.fromId(targetUserId))
+                                .and(message.editMessageEmbeds(messageEmbed).setActionRow(buttonList.get(0), buttonList.get(1),
+                                        buttonList.get(2), buttonList.get(3).withLabel("Ban").withId("ban-button")))
+                                .and(this.appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Unbanned", stageId, false))
+                                .and(event.deferEdit())
+                                .queue();
                     } else {
                         event.reply(Veganizer.NO_PERMISSIONS).setEphemeral(true).queue();
                     }
@@ -212,11 +218,11 @@ public class InteractionListener extends ListenerAdapter {
                 case "ban-modal" -> {
                     Objects.requireNonNull(event.getGuild()).ban(targetUser, 0, TimeUnit.SECONDS)
                             .reason(Objects.requireNonNull(event.getValue("ban-reason")).getAsString())
+                            .and(message.editMessageEmbeds(messageEmbed).setActionRow(buttonList.get(0), buttonList.get(1),
+                                    buttonList.get(2), buttonList.get(3).withLabel("Unban").withId("unban-button")))
+                            .and(this.appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Banned", stageId, false))
+                            .and(event.deferEdit())
                             .queue();
-                    message.editMessageEmbeds(messageEmbed).setActionRow(buttonList.get(0), buttonList.get(1), buttonList.get(2),
-                            buttonList.get(3).withLabel("Unban").withId("unban-button")).queue();
-                    this.appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Banned", stageId);
-                    event.deferEdit().queue();
                 }
             }
         }
@@ -245,17 +251,30 @@ public class InteractionListener extends ListenerAdapter {
 
         // If summary do NOT exist
         if (summaryIndex == -1) {
-            embedBuilder.addField(summaryField);
+            boolean isNewLogIndex = false;
+            if (logIndex == 2) {
+                embedBuilder.addField(fieldList.get(2));
+                logIndex = 3;
+                isNewLogIndex = true;
+            }
+            fieldList.set(2, summaryField);
             message.editMessageEmbeds(embedBuilder.build()).setActionRow(Objects.requireNonNull(buttonList.get(0))
-                    .withLabel("Edit Summary"), buttonList.get(1), buttonList.get(2), buttonList.get(3)).queue();
-            if (isUserOnStage) voiceListener.getTrackingEmbedBuilder(stageId).addField(summaryField);
-            this.appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Added Summary", stageId);
+                            .withLabel("Edit Summary"), buttonList.get(1), buttonList.get(2), buttonList.get(3))
+                    .and(this.appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Added Summary", stageId, true))
+                    .queue();
+            if (isUserOnStage) {
+                if (isNewLogIndex) {
+                    voiceListener.getTrackingEmbedBuilder(stageId).addField(fieldList.get(3));
+                }
+                voiceListener.getTrackingEmbedBuilder(stageId).getFields().set(2, summaryField);
+            }
         } else {
             fieldList.set(summaryIndex, summaryField);
-            message.editMessageEmbeds(embedBuilder.build()).queue();
+            message.editMessageEmbeds(embedBuilder.build())
+                    .and(this.appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Edited Summary", stageId, false))
+                    .queue();
             if (isUserOnStage)
                 voiceListener.getTrackingEmbedBuilder(stageId).getFields().set(summaryIndex, summaryField);
-            this.appendLog(event, logIndex, interactUserName, fieldList, message, embedBuilder, "Edited Summary", stageId);
         }
     }
 
@@ -289,9 +308,10 @@ public class InteractionListener extends ListenerAdapter {
      * @param embedBuilder     target message embed builder
      * @param logBody          log body message
      * @param stageId          ID of stage
+     * @return MessageEditAction
      */
-    private void appendLog(Event event, int logIndex, String interactUserName, List<MessageEmbed.Field> fieldList,
-                           Message message, EmbedBuilder embedBuilder, String logBody, long stageId) {
+    private MessageEditAction appendLog(Event event, int logIndex, String interactUserName, List<MessageEmbed.Field> fieldList,
+                                        Message message, EmbedBuilder embedBuilder, String logBody, long stageId, boolean isLogBeforeSummary) {
         final VoiceListener voiceListener = (VoiceListener) event.getJDA().getRegisteredListeners().get(0);
         final MessageEmbed.Field oldLogField = logIndex == -1 ? null : fieldList.get(logIndex);
         final String log = logBody + " by " + interactUserName
@@ -313,8 +333,10 @@ public class InteractionListener extends ListenerAdapter {
                     false
             );
             fieldList.set(logIndex, newLogField);
-            if (isUserOnStage) voiceListener.getTrackingEmbedBuilder(stageId).getFields().set(logIndex, newLogField);
+            if (isUserOnStage) {
+                voiceListener.getTrackingEmbedBuilder(stageId).getFields().set(isLogBeforeSummary ? logIndex - 1 : logIndex, newLogField);
+            }
         }
-        message.editMessageEmbeds(embedBuilder.build()).queue();
+        return message.editMessageEmbeds(embedBuilder.build());
     }
 }
