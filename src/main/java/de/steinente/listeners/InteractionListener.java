@@ -282,7 +282,7 @@ public class InteractionListener extends ListenerAdapter {
     public void fixMessageIfBugged(Event event, MessageEmbed messageEmbed, EmbedBuilder embedBuilder, Message message, long stageId) {
         final VoiceListener voiceListener = (VoiceListener) event.getJDA().getRegisteredListeners().get(0);
         if ((Objects.equals(messageEmbed.getColor(), Veganizer.GREEN) || Objects.equals(messageEmbed.getColor(), Veganizer.YELLOW))
-                && null == voiceListener.getActiveMember(stageId)) {
+                && (null == voiceListener.getActiveMember(stageId) || !voiceListener.getActiveMember(stageId).getId().equals(messageEmbed.getFields().get(1).getValue()))) {
             embedBuilder.setColor(Veganizer.RED);
             embedBuilder.setDescription(messageEmbed.getDescription() + " (Maybe incorrect)");
             message.editMessageEmbeds(embedBuilder.build()).queue();
