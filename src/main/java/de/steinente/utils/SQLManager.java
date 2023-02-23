@@ -12,7 +12,7 @@ public class SQLManager {
     }
 
     public static void getData(String what, String targetid) {
-        LiteSQL.onUpdate("SELECT " + what + " FROM users WHERE id = '" + targetid + "';");
+        LiteSQL.onQuery("SELECT " + what + " FROM users WHERE id = '" + targetid + "';");
     }
 
     public static void setData(Integer userid, Integer onstage, Boolean vegan, Boolean troll) {
