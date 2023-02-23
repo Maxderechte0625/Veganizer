@@ -25,7 +25,8 @@ public class Veganizer {
 
     public static void main(String[] args) {
         final JDABuilder builder = JDABuilder.createDefault(System.getenv("token"));
-
+        LiteSQL.connect();
+        SQLManager.onCreate();
         builder.setActivity(Activity.watching("auf die Stage."));
         builder.enableIntents(
                 GatewayIntent.MESSAGE_CONTENT,
